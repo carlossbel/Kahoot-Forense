@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kahoot Medicina Forense</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow-x: hidden; }
+  body {
+    font-family: 'Montserrat', system-ui, sans-serif;
+    background: #46178F;
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(255,255,255,0.08) 0, transparent 40%),
+      radial-gradient(circle at 80% 90%, rgba(0,0,0,0.15) 0, transparent 40%),
+      linear-gradient(135deg, #46178F 0%, #26125A 100%);
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  /* ====== TOP BAR ====== */
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    background: rgba(0,0,0,0.25);
+    backdrop-filter: blur(8px);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .brand {
+    font-weight: 900;
+    font-size: 20px;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .brand-logo {
+    background: #fff;
+    color: #46178F;
+    padding: 4px 10px;
+    border-radius: 6px;
+    transform: rotate(-3deg);
+    box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+  }
+  .stats {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .stat-chip {
+    background: rgba(255,255,255,0.15);
+    padding: 6px 12px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .stat-chip.score { background: #26890C; }
+
+  /* ====== SCREENS ====== */
+  .screen { display: none; flex: 1; padding: 20px; animation: fadeIn 0.4s ease; }
+  .screen.active { display: flex; flex-direction: column; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ====== START SCREEN ====== */
+  #start {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+  }
+  .title-wrap {
+    background: #fff;
+    color: #333;
+    padding: 24px 32px;
+    border-radius: 12px;
+    box-shadow: 0 8px 0 rgba(0,0,0,0.25);
+    max-width: 520px;
+    width: 100%;
+  }
+  .title-wrap h1 {
+    font-size: clamp(26px, 6vw, 36px);
+    font-weight: 900;
+    color: #46178F;
+    margin-bottom: 8px;
+    line-height: 1.1;
+  }
+  .title-wrap h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 16px;
+  }
+  .title-wrap p {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.5;
+    margin-bottom: 6px;
+  }
+  .title-wrap .meta {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #46178F;
+  }
+  .title-wrap .meta span {
+    background: #F2F2F2;
+    padding: 6px 12px;
+    border-radius: 20px;
+  }
+  .btn-primary {
+    background: #26890C;
+    color: #fff;
+    border: none;
+    padding: 16px 42px;
+    font-family: inherit;
+    font-weight: 800;
+    font-size: 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: 0 5px 0 #1a6008;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .btn-primary:active { transform: translateY(3px); box-shadow: 0 2px 0 #1a6008; }
+  .btn-primary:hover { background: #2a9b0e; }
+  .btn-secondary {
+    background: #fff;
+    color: #46178F;
+    border: none;
+    padding: 14px 36px;
+    font-family: inherit;
+    font-weight: 800;
+    font-size: 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: 0 5px 0 rgba(0,0,0,0.25);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .btn-secondary:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,0.25); }
+
+  .player-name {
+    width: 100%;
+    max-width: 400px;
+    padding: 14px 18px;
+    border-radius: 6px;
+    border: 3px solid rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 16px;
+    text-align: center;
+    outline: none;
+  }
+  .player-name::placeholder { color: rgba(255,255,255,0.6); }
+  .player-name:focus { border-color: #fff; background: rgba(255,255,255,0.2); }
+
+  /* ====== GAME SCREEN ====== */
+  #game { padding: 14px; gap: 14px; }
+  .question-card {
+    background: #fff;
+    color: #333;
+    padding: 20px 24px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.2);
+    min-height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .question-card .q-text {
+    font-size: clamp(16px, 3.6vw, 22px);
+    font-weight: 700;
+    line-height: 1.3;
+    color: #333;
+  }
+
+  .timer-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+  }
+  .timer-circle {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: #fff;
+    color: #46178F;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 900;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.25);
+    position: relative;
+  }
+  .timer-circle.warning { background: #FFC800; animation: pulse 0.5s infinite; }
+  .timer-circle.danger { background: #E21B3C; color: #fff; animation: pulse 0.3s infinite; }
+  @keyframes pulse { 50% { transform: scale(1.1); } }
+
+  .progress-bar {
+    flex: 1;
+    max-width: 300px;
+    height: 10px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #FFC800, #26890C);
+    transition: width 0.3s ease;
+  }
+
+  .answers {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: auto;
+  }
+  .answer-btn {
+    border: none;
+    padding: 18px 16px;
+    min-height: 90px;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: clamp(13px, 2.6vw, 16px);
+    color: #fff;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 6px;
+    box-shadow: 0 5px 0 rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: transform 0.1s, box-shadow 0.1s, opacity 0.3s;
+    line-height: 1.25;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+  }
+  .answer-btn:not(:disabled):active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,0.3); }
+  .answer-btn:not(:disabled):hover { filter: brightness(1.1); }
+  .answer-btn:disabled { cursor: default; }
+  .answer-btn.btn-red    { background: #E21B3C; }
+  .answer-btn.btn-blue   { background: #1368CE; }
+  .answer-btn.btn-yellow { background: #D89E00; }
+  .answer-btn.btn-green  { background: #26890C; }
+
+  .answer-btn.dim { opacity: 0.35; }
+  .answer-btn.correct {
+    background: #26890C !important;
+    animation: correctPulse 0.5s;
+    box-shadow: 0 5px 0 #1a6008, 0 0 25px rgba(38, 137, 12, 0.8);
+  }
+  .answer-btn.wrong {
+    background: #E21B3C !important;
+    animation: shake 0.5s;
+  }
+  @keyframes correctPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+  }
+
+  .shape {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.3));
+  }
+
+  /* ====== FEEDBACK BANNER ====== */
+  .feedback {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.5);
+    background: #fff;
+    color: #333;
+    padding: 20px 40px;
+    border-radius: 12px;
+    font-weight: 900;
+    font-size: 28px;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 100;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    text-align: center;
+  }
+  .feedback.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  .feedback.correct { color: #26890C; }
+  .feedback.wrong { color: #E21B3C; }
+  .feedback .fb-points {
+    display: block;
+    font-size: 16px;
+    color: #666;
+    margin-top: 4px;
+    font-weight: 700;
+  }
+
+  /* ====== END SCREEN ====== */
+  #end {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+  }
+  .podium {
+    background: #fff;
+    color: #333;
+    padding: 32px 24px;
+    border-radius: 16px;
+    max-width: 460px;
+    width: 100%;
+    box-shadow: 0 10px 0 rgba(0,0,0,0.25);
+  }
+  .podium h2 {
+    font-size: 24px;
+    color: #46178F;
+    margin-bottom: 4px;
+  }
+  .final-score {
+    font-size: 56px;
+    font-weight: 900;
+    color: #26890C;
+    margin: 10px 0;
+    line-height: 1;
+  }
+  .final-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 18px 0;
+  }
+  .final-stat {
+    background: #F2F2F2;
+    padding: 14px;
+    border-radius: 8px;
+  }
+  .final-stat .label { font-size: 12px; color: #777; font-weight: 600; text-transform: uppercase; }
+  .final-stat .value { font-size: 24px; font-weight: 900; color: #46178F; margin-top: 2px; }
+  .final-stat.ok .value { color: #26890C; }
+  .final-stat.err .value { color: #E21B3C; }
+  .rank-msg {
+    font-size: 16px;
+    color: #46178F;
+    font-weight: 700;
+    margin-top: 10px;
+    padding: 12px;
+    background: #F6F0FF;
+    border-radius: 8px;
+  }
+  .btns-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  /* ====== REVIEW LIST ====== */
+  .review-list {
+    text-align: left;
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: 10px;
+    padding-right: 4px;
+  }
+  .review-list::-webkit-scrollbar { width: 8px; }
+  .review-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+  .review-item {
+    padding: 10px 12px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .review-item.ok { background: #E8F5E9; border-left: 4px solid #26890C; }
+  .review-item.err { background: #FFEBEE; border-left: 4px solid #E21B3C; }
+  .review-item .rq { font-weight: 700; color: #333; margin-bottom: 4px; }
+  .review-item .ra { color: #555; }
+  .review-item .ra strong { color: #26890C; }
+
+  /* ====== RESPONSIVE ====== */
+  @media (max-width: 500px) {
+    .answers { grid-template-columns: 1fr; }
+    .answer-btn { min-height: 70px; padding: 14px; }
+    .topbar { padding: 10px 14px; }
+    .brand { font-size: 16px; }
+    .stat-chip { font-size: 12px; padding: 5px 10px; }
+    .timer-circle { width: 60px; height: 60px; font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="brand-logo">Kahoot!</span> Forense</div>
+  <div class="stats">
+    <div class="stat-chip" id="qCounter">1/30</div>
+    <div class="stat-chip score" id="scoreChip">⭐ 0</div>
+  </div>
+</div>
+
+<!-- ========== START SCREEN ========== -->
+<div class="screen active" id="start">
+  <div class="title-wrap">
+    <h1>🩺 Medicina Forense</h1>
+    <h2>Examen tipo Kahoot — 30 preguntas</h2>
+    <p>Atropellamiento · Exploración ginecológica · Exploración proctológica</p>
+    <div class="meta">
+      <span>⏱️ 15 seg</span>
+      <span>❓ 30 preguntas</span>
+      <span>🔁 Repasar errores al final</span>
+    </div>
+  </div>
+  <input type="text" class="player-name" id="playerName" placeholder="Escribe tu nombre" maxlength="20">
+  <button class="btn-primary" onclick="startGame()">¡Empezar!</button>
+</div>
+
+<!-- ========== GAME SCREEN ========== -->
+<div class="screen" id="game">
+  <div class="question-card"><div class="q-text" id="questionText"></div></div>
+  <div class="timer-wrap">
+    <div class="timer-circle" id="timer">15</div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+  <div class="answers" id="answers"></div>
+</div>
+
+<!-- ========== END SCREEN ========== -->
+<div class="screen" id="end">
+  <div class="podium">
+    <h2 id="endTitle">¡Terminaste! 🎉</h2>
+    <div class="final-score" id="finalScore">0</div>
+    <div class="final-stats">
+      <div class="final-stat ok"><div class="label">Correctas</div><div class="value" id="statCorrect">0</div></div>
+      <div class="final-stat err"><div class="label">Incorrectas</div><div class="value" id="statWrong">0</div></div>
+      <div class="final-stat"><div class="label">Tiempo prom.</div><div class="value" id="statAvg">0s</div></div>
+      <div class="final-stat"><div class="label">Precisión</div><div class="value" id="statAcc">0%</div></div>
+    </div>
+    <div class="rank-msg" id="rankMsg">¡Buen trabajo!</div>
+    <div class="btns-row">
+      <button class="btn-primary" id="retryWrongBtn" onclick="retryWrong()">🔁 Reintentar erradas</button>
+    </div>
+    <div class="btns-row">
+      <button class="btn-secondary" onclick="restartAll()">🔄 Empezar de nuevo</button>
+    </div>
+    <div class="review-list" id="reviewList"></div>
+  </div>
+</div>
+
+<!-- ========== FEEDBACK ========== -->
+<div class="feedback" id="feedback"></div>
+
+<script>
+/* ============ DATA ============ */
+const QUESTIONS = [
+  // ===== ATROPELLAMIENTO =====
+  {q:"¿Qué es el atropellamiento en medicina forense?",a:["Violencia traumática por encuentro del cuerpo con un vehículo en movimiento","Lesión por caída desde la propia altura","Herida producida por arma blanca en vía pública","Trauma por objeto contundente lanzado a distancia"],c:0,t:"Atropellamiento"},
+  {q:"¿Cuáles son las 4 fases del atropellamiento completo?",a:["Impacto, vuelo, caída y rebote","Choque, caída, arrastre y aplastamiento","Golpe, fractura, arrastre y muerte","Contacto, proyección, caída y fuga"],c:1,t:"Atropellamiento"},
+  {q:"La lesión característica de la fase de choque por automóvil es:",a:["Fractura de cráneo frontal","Fractura de clavícula","Fractura por parachoques","Fractura de muñeca"],c:2,t:"Atropellamiento"},
+  {q:"En la fase de caída destacan principalmente las lesiones de tipo:",a:["Fracturas de pelvis exclusivamente","Lesiones viscerales abdominales","Lesiones de columna lumbar","Traumatismos craneoencefálicos"],c:3,t:"Atropellamiento"},
+  {q:"¿Qué lesiones predominan en la fase de arrastre?",a:["Escoriaciones en zonas expuestas, lineales o 'en saltos'","Fracturas múltiples de huesos largos","Hemorragias internas sin lesión externa","Quemaduras de segundo grado"],c:0,t:"Atropellamiento"},
+  {q:"En la fase de aplastamiento en tórax y abdomen puede existir:",a:["Solo escoriaciones superficiales","Daño interno grave con lesiones externas mínimas","Fracturas aisladas sin daño visceral","Lesiones exclusivamente cutáneas"],c:1,t:"Atropellamiento"},
+  {q:"¿Qué signo del aplastamiento reproduce el dibujo de la banda de rodadura?",a:["Signo de Vinokurova","Heridas en estrías","Marcas de neumáticos","Signo de Simonin"],c:2,t:"Atropellamiento"},
+  {q:"La banda de enjugamiento del atropellamiento ferroviario es:",a:["Rojiza y brillante por compresión","Blanca y seca por fricción","Amarillenta por descomposición","Negruzca y viscosa por lubricantes de la rueda"],c:3,t:"Atropellamiento"},
+  {q:"La banda de presión en atropellamiento ferroviario se caracteriza por ser:",a:["Rojiza y brillante por compresión contra el riel","Negruzca por lubricantes","Azulada por hipostasis","Verdosa por putrefacción"],c:0,t:"Atropellamiento"},
+  {q:"¿Cuál es la etiología médico-legal más frecuente del atropellamiento?",a:["Suicida","Accidental","Homicida","Indeterminada"],c:1,t:"Atropellamiento"},
+  {q:"El 'latigazo cervical' en ocupantes de vehículo se debe a:",a:["Golpe directo con el volante","Rotación del tórax","Movimientos bruscos de flexión y extensión del cuello","Compresión axial de la columna"],c:2,t:"Atropellamiento"},
+  {q:"La lesión por cinturón abdominal incluye:",a:["Fracturas aisladas de cadera","Luxación sacroilíaca únicamente","Hematoma retroperitoneal exclusivo","Contusiones abdominales, lesiones intestinales y lumbares"],c:3,t:"Atropellamiento"},
+
+  // ===== GINECOLÓGICA =====
+  {q:"La violencia sexual se define como todo acto que:",a:["Degrada o daña el cuerpo y/o la sexualidad atentando contra la libertad","Solo implica penetración con pene","Requiere lesiones visibles para configurarse","Únicamente ocurre entre desconocidos"],c:0,t:"Ginecológica"},
+  {q:"¿Cuáles son los delitos sexuales mencionados?",a:["Robo, lesiones y homicidio","Hostigamiento sexual, abuso sexual y violación","Fraude, extorsión y secuestro","Daño, injuria y calumnia"],c:1,t:"Ginecológica"},
+  {q:"La actividad pericial del médico en violencia sexual incluye:",a:["Solo exploración física","Interrogatorio y detención del agresor","Entrevista, examen médico, toma de muestras y examen de vestimenta","Dictamen psicológico exclusivamente"],c:2,t:"Ginecológica"},
+  {q:"Para iniciar la evaluación pericial en violencia sexual se requiere:",a:["Solo la voluntad de la víctima","Orden verbal del médico tratante","Autorización del agresor","Solicitud u orden de autoridad competente y consentimiento informado"],c:3,t:"Ginecológica"},
+  {q:"En menores de edad durante la exploración es indispensable:",a:["Tutores del mismo sexo","Presencia de abogado","Grabación en video obligatoria","Sedación de la menor"],c:0,t:"Ginecológica"},
+  {q:"La maniobra de las Riendas sirve para:",a:["Introducir dedo en recto para tensar himen","Tomar labios mayores con pulgar e índice y tirar hacia arriba y afuera","Separar glúteos para ver región anal","Comprimir vejiga para muestra urinaria"],c:1,t:"Ginecológica"},
+  {q:"La maniobra de Simonin consiste en:",a:["Separar labios mayores con ambas manos","Elevar útero mediante tacto bimanual","Introducir dedo índice en recto haciendo presión para tensar el himen","Comprimir fondo de saco posterior"],c:2,t:"Ginecológica"},
+  {q:"El Método de Lacassagne cronométrico se basa en:",a:["Cuadrantes de 90°","Grados decimales","Puntos cardinales","Siguiendo las agujas del reloj"],c:3,t:"Ginecológica"},
+  {q:"El himen elástico o complaciente se caracteriza por:",a:["Mayor cantidad de fibras elásticas, se estira sin romperse","Himen muy delgado que se rompe con facilidad","Himen imperforado congénito","Himen con desgarros antiguos múltiples"],c:0,t:"Ginecológica"},
+  {q:"Los desgarros himeneales recientes (<10 días) se caracterizan por:",a:["Bordes cicatrizados nacarados","Bordes sangrantes, dolorosos, con hiperemia y edema","Forma de 'V' con bordes aperlados","Ausencia total de signos inflamatorios"],c:1,t:"Ginecológica"},
+  {q:"¿Cuál es el diámetro normal del orificio himeneal en una adulta?",a:["Mayor de 50 mm","Entre 40 y 60 mm","Menor de 30 mm","Exactamente 10 mm"],c:2,t:"Ginecológica"},
+  {q:"La NOM-046 contempla atención en violencia sexual hasta:",a:["24 horas después del hecho","48 horas después del hecho","72 horas después del hecho","120 horas después del hecho"],c:3,t:"Ginecológica"},
+
+  // ===== PROCTOLÓGICA =====
+  {q:"La posición ideal para la exploración proctológica en adultos es:",a:["Genupectoral o mahometana","Decúbito supino","Posición de Fowler","Bipedestación"],c:0,t:"Proctológica"},
+  {q:"El signo de Wilson Johnston corresponde a:",a:["Dilatación esfinteriana mayor de 2 cm","Desgarro triangular con base en margen anal y vértice en periné","Hiperemia perianal difusa","Cicatriz radiada antigua"],c:1,t:"Proctológica"},
+  {q:"La parálisis antálgica esfinteriana se define como:",a:["Contracción permanente del esfínter interno","Pérdida completa del tono por lesión medular","Dilatación del esfínter de 1 a 2.5 cm provocada por intenso trauma","Espasmo esfinteriano reflejo normal"],c:2,t:"Proctológica"},
+  {q:"En niños, la posición recomendada para exploración proctológica es:",a:["Posición ginecológica forzada","Bipedestación con flexión de tronco","Decúbito prono con piernas extendidas","Decúbito lateral con rodillas flexionadas hacia el abdomen"],c:3,t:"Proctológica"},
+  {q:"La ausencia de lesiones anales tras penetración puede explicarse por:",a:["Penetración consentida, uso de lubricantes o inconsciencia de la víctima","Siempre indica que no hubo penetración","Significa que la víctima mintió","Descarta el delito sexual por completo"],c:0,t:"Proctológica"},
+  {q:"Las lesiones anales antiguas incluyen:",a:["Hiperemia intensa y edema reciente","Cicatrices, alteración de pliegues radiados y pérdida de tono","Sangrado activo del margen anal","Desgarros sangrantes recientes"],c:1,t:"Proctológica"},
+];
+
+/* ============ KAHOOT SHAPES (SVG) ============ */
+const SHAPES = {
+  red:    '<svg class="shape" viewBox="0 0 24 24" fill="white"><path d="M12 2L2 22h20L12 2z"/></svg>',
+  blue:   '<svg class="shape" viewBox="0 0 24 24" fill="white"><path d="M12 2l10 10-10 10L2 12z"/></svg>',
+  yellow: '<svg class="shape" viewBox="0 0 24 24" fill="white"><circle cx="12" cy="12" r="10"/></svg>',
+  green:  '<svg class="shape" viewBox="0 0 24 24" fill="white"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>',
+};
+const COLORS = ['red', 'blue', 'yellow', 'green'];
+
+/* ============ STATE ============ */
+let state = {
+  queue: [],
+  idx: 0,
+  score: 0,
+  correct: 0,
+  wrong: 0,
+  wrongQs: [],
+  timer: null,
+  timeLeft: 15,
+  startTime: 0,
+  totalTime: 0,
+  answering: true,
+  playerName: '',
+  retryMode: false,
+};
+const TIME_PER_Q = 15;
+const MAX_POINTS = 1000;
+
+/* ============ FUNCTIONS ============ */
+function startGame() {
+  const nameInput = document.getElementById('playerName').value.trim();
+  state.playerName = nameInput || 'Jugador';
+  state.queue = QUESTIONS.slice();
+  state.idx = 0;
+  state.score = 0;
+  state.correct = 0;
+  state.wrong = 0;
+  state.wrongQs = [];
+  state.totalTime = 0;
+  state.retryMode = false;
+  switchScreen('game');
+  showQuestion();
+}
+
+function retryWrong() {
+  if (state.wrongQs.length === 0) return;
+  state.queue = state.wrongQs.slice();
+  state.idx = 0;
+  state.score = 0;
+  state.correct = 0;
+  state.wrong = 0;
+  state.wrongQs = [];
+  state.totalTime = 0;
+  state.retryMode = true;
+  switchScreen('game');
+  showQuestion();
+}
+
+function restartAll() { startGame(); }
+
+function switchScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showQuestion() {
+  if (state.idx >= state.queue.length) { endGame(); return; }
+  const q = state.queue[state.idx];
+  document.getElementById('questionText').textContent = q.q;
+  document.getElementById('qCounter').textContent = `${state.idx + 1}/${state.queue.length}` + (state.retryMode ? ' 🔁' : '');
+  document.getElementById('scoreChip').textContent = `⭐ ${state.score}`;
+
+  const container = document.getElementById('answers');
+  container.innerHTML = '';
+  q.a.forEach((ans, i) => {
+    const btn = document.createElement('button');
+    btn.className = `answer-btn btn-${COLORS[i]}`;
+    btn.innerHTML = SHAPES[COLORS[i]] + `<span>${ans}</span>`;
+    btn.onclick = () => selectAnswer(i, btn);
+    container.appendChild(btn);
+  });
+
+  state.timeLeft = TIME_PER_Q;
+  state.startTime = Date.now();
+  state.answering = true;
+  updateTimer();
+  if (state.timer) clearInterval(state.timer);
+  state.timer = setInterval(tickTimer, 100);
+}
+
+function tickTimer() {
+  const elapsed = (Date.now() - state.startTime) / 1000;
+  state.timeLeft = Math.max(0, TIME_PER_Q - elapsed);
+  updateTimer();
+  if (state.timeLeft <= 0 && state.answering) {
+    state.answering = false;
+    clearInterval(state.timer);
+    timeOut();
+  }
+}
+
+function updateTimer() {
+  const el = document.getElementById('timer');
+  const secs = Math.ceil(state.timeLeft);
+  el.textContent = secs;
+  el.classList.remove('warning', 'danger');
+  if (secs <= 3) el.classList.add('danger');
+  else if (secs <= 7) el.classList.add('warning');
+  const pct = (state.timeLeft / TIME_PER_Q) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function selectAnswer(i, btn) {
+  if (!state.answering) return;
+  state.answering = false;
+  clearInterval(state.timer);
+  const elapsed = (Date.now() - state.startTime) / 1000;
+  state.totalTime += elapsed;
+  const q = state.queue[state.idx];
+  const isCorrect = (i === q.c);
+
+  // Dim all, highlight
+  document.querySelectorAll('.answer-btn').forEach((b, idx) => {
+    b.disabled = true;
+    if (idx !== i && idx !== q.c) b.classList.add('dim');
+  });
+  document.querySelectorAll('.answer-btn')[q.c].classList.add('correct');
+  if (!isCorrect) btn.classList.add('wrong');
+
+  let pointsEarned = 0;
+  if (isCorrect) {
+    // Points: faster = more, up to 1000
+    const timeRatio = Math.max(0, 1 - (elapsed / TIME_PER_Q) * 0.5);
+    pointsEarned = Math.round(500 + 500 * timeRatio);
+    state.score += pointsEarned;
+    state.correct++;
+    showFeedback('¡Correcto! ✅', `+${pointsEarned} pts`, 'correct');
+  } else {
+    state.wrong++;
+    state.wrongQs.push(q);
+    showFeedback('Incorrecto ❌', `Respuesta: ${q.a[q.c]}`, 'wrong');
+  }
+  document.getElementById('scoreChip').textContent = `⭐ ${state.score}`;
+
+  setTimeout(() => {
+    state.idx++;
+    showQuestion();
+  }, 2200);
+}
+
+function timeOut() {
+  const q = state.queue[state.idx];
+  state.totalTime += TIME_PER_Q;
+  state.wrong++;
+  state.wrongQs.push(q);
+  document.querySelectorAll('.answer-btn').forEach((b, idx) => {
+    b.disabled = true;
+    if (idx !== q.c) b.classList.add('dim');
+    else b.classList.add('correct');
+  });
+  showFeedback('¡Se acabó el tiempo! ⏰', `Respuesta: ${q.a[q.c]}`, 'wrong');
+  setTimeout(() => { state.idx++; showQuestion(); }, 2200);
+}
+
+function showFeedback(main, sub, kind) {
+  const el = document.getElementById('feedback');
+  el.className = 'feedback ' + kind;
+  el.innerHTML = main + `<span class="fb-points">${sub}</span>`;
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+function endGame() {
+  if (state.timer) clearInterval(state.timer);
+  const total = state.correct + state.wrong;
+  const acc = total > 0 ? Math.round((state.correct / total) * 100) : 0;
+  const avg = total > 0 ? (state.totalTime / total).toFixed(1) : 0;
+
+  document.getElementById('endTitle').textContent = state.retryMode
+    ? `🔁 Repaso completado, ${state.playerName}`
+    : `¡Terminaste, ${state.playerName}! 🎉`;
+  document.getElementById('finalScore').textContent = state.score.toLocaleString();
+  document.getElementById('statCorrect').textContent = state.correct;
+  document.getElementById('statWrong').textContent = state.wrong;
+  document.getElementById('statAvg').textContent = avg + 's';
+  document.getElementById('statAcc').textContent = acc + '%';
+
+  let msg = '';
+  if (acc === 100) msg = '🏆 ¡PERFECTO! Dominas la medicina forense';
+  else if (acc >= 90) msg = '🌟 ¡Excelente! Casi perfecto';
+  else if (acc >= 75) msg = '👏 ¡Muy bien! Buen dominio del tema';
+  else if (acc >= 60) msg = '📚 Vas bien, repasa los errores';
+  else if (acc >= 40) msg = '💪 Sigue estudiando, puedes mejorar';
+  else msg = '📖 A estudiar! Reintenta las falladas';
+  document.getElementById('rankMsg').textContent = msg;
+
+  // Retry button only if there are wrong answers
+  const retryBtn = document.getElementById('retryWrongBtn');
+  if (state.wrongQs.length > 0) {
+    retryBtn.style.display = '';
+    retryBtn.textContent = `🔁 Reintentar ${state.wrongQs.length} erradas`;
+  } else {
+    retryBtn.style.display = 'none';
+  }
+
+  // Review list
+  const review = document.getElementById('reviewList');
+  review.innerHTML = '';
+  if (state.wrongQs.length > 0) {
+    const header = document.createElement('div');
+    header.style.cssText = 'font-weight:800;color:#46178F;margin:10px 0 8px;font-size:14px;';
+    header.textContent = '📝 Preguntas falladas:';
+    review.appendChild(header);
+    state.wrongQs.forEach(q => {
+      const item = document.createElement('div');
+      item.className = 'review-item err';
+      item.innerHTML = `<div class="rq">${q.q}</div><div class="ra">✅ <strong>${q.a[q.c]}</strong></div>`;
+      review.appendChild(item);
+    });
+  }
+
+  switchScreen('end');
+}
+
+// Enter key starts
+document.getElementById('playerName').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startGame();
+});
+</script>
+</body>
+</html>
